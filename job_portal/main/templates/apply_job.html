@@ -1,0 +1,103 @@
+<!-- templates/apply_job.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Apply for Position</h3>
+                    
+                    <!-- Job Details -->
+                    <div class="job-details mb-4 p-4 bg-light rounded">
+                        <h4>{{ job.title }}</h4>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-building me-2"></i>
+                            {{ job.employer.userprofile.company_name|default:"Company" }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {{ job.location }}
+                            {% if job.is_remote %}
+                                <span class="badge bg-success ms-2">Remote</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>
+                            {{ job.get_experience_level_display }}
+                        </p>
+                    </div>
+
+                    <!-- Application Form -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if not resume %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            You haven't uploaded your resume yet. 
+                            <a href="{% url 'upload_resume' %}" class="alert-link">Upload now</a>
+                        </div>
+                        {% endif %}
+
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                            </label>
+                            {% if field.name == 'cover_letter' %}
+                                <textarea name="{{ field.name }}" 
+                                          class="form-control" 
+                                          rows="5" 
+                                          placeholder="Tell us why you're interested in this position..."></textarea>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Application
+                            </button>
+                            <a href="{% url 'jobs_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Jobs
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .job-details {
+        border-left: 4px solid var(--secondary-color);
+    }
+    
+    .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+    
+    .btn-primary:hover {
+        background-color: #2980b9;
+        border-color: #2980b9;
+    }
+</style>
+{% endblock %}
