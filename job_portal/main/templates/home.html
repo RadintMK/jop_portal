@@ -3,14 +3,14 @@
 {% block content %}
 <div class="hero-section text-center py-5 mb-5" style="background: linear-gradient(135deg, #2c3e50, #3498db); color: white; border-radius: 15px;">
     <div class="container py-5">
-        <h1 class="display-4 mb-4">Find Your Dream Job</h1>
-        <p class="lead mb-4">Connect with top employers and opportunities</p>
-        <a href="{% url 'jobs_list' %}" class="btn btn-light btn-lg">Browse Jobs</a>
+        <h1 class="display-4 mb-4">Найдите свою мечту</h1>
+        <p class="lead mb-4">Свяжитесь с лучшими работодателями и возможностями</p>
+        <a href="{% url 'jobs_list' %}" class="btn btn-light btn-lg">Обзор вакансий</a>
     </div>
 </div>
 
 <div class="container">
-    <h2 class="text-center mb-4">Recent Job Postings</h2>
+    <h2 class="text-center mb-4">Последние опубликованные вакансии</h2>
     <div class="row">
         {% for job in recent_jobs %}
         <div class="col-md-4 mb-4">
@@ -18,16 +18,16 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ job.title }}</h5>
                     <p class="card-text text-muted">
-                        <i class="fas fa-building me-2"></i>{{ job.employer.userprofile.company_name|default:"Company" }}
+                        <i class="fas fa-building me-2"></i>{{ job.employer.userprofile.company_name|default:"Компания" }}
                     </p>
                     <p class="card-text">
                         <i class="fas fa-map-marker-alt me-2"></i>{{ job.location }}
                         {% if job.is_remote %}
-                        <span class="badge bg-success ms-2">Remote</span>
+                            <span class="badge bg-success ms-2">Удаленная работа</span>
                         {% endif %}
                     </p>
                     <p class="card-text">{{ job.description|truncatewords:20 }}</p>
-                    <a href="{% url 'jobs_list' %}" class="btn btn-primary">Learn More</a>
+                    <a href="{% url 'jobs_list' %}" class="btn btn-primary">Подробнее</a>
                 </div>
             </div>
         </div>

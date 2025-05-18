@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center">{{ job.title }}</h2>
+                    <p class="text-muted mb-4">Опубликовано {{ job.created_at|timesince }} назад</p>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Пользователь</th>
+                                <th>Дата подачи</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr>
+                                <td>{{ application.applicant.username }}</td>
+                                <td>{{ application.created_at|timesince }} назад</td>
+                                <td>{{ application.get_status_display }}</td>
+                                <td>
+                                    {% if application.resume %}
+                                    <a href="{{ application.resume.file.url }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download me-1"></i>Скачать резюме
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Заявок пока нет</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

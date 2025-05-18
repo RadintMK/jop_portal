@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Job, Application, Resume
 
 class UserRegistrationForm(UserCreationForm):
-    is_employer = forms.BooleanField(required=False, label='Register as Employer')
+    is_employer = forms.BooleanField(required=False, label='Работодатель')
     
     class Meta:
         model = User
@@ -32,6 +32,9 @@ class ResumeForm(forms.ModelForm):
     class Meta:
         model = Resume
         fields = ['file']
+        widgets = {
+            'file': forms.ClearableFileInput(attrs={'accept': '.pdf,.doc,.docx'}),
+        }
 
 class JobSearchForm(forms.Form):
     search = forms.CharField(required=False)

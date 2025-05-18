@@ -1,19 +1,18 @@
-<!-- templates/notifications.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="container">
-    <h2>Notifications</h2>
+    <h2>Уведомления</h2>
     <div class="list-group">
         {% for notification in notifications %}
             <div class="list-group-item {% if not notification.is_read %}list-group-item-primary{% endif %}">
                 <div class="d-flex w-100 justify-content-between">
                     <p class="mb-1">{{ notification.message }}</p>
-                    <small>{{ notification.created_at|timesince }} ago</small>
+                    <small>{{ notification.created_at|timesince }} назад</small>
                 </div>
             </div>
         {% empty %}
-            <p>No notifications yet.</p>
+            <p>Уведомлений пока нет.</p>
         {% endfor %}
     </div>
 </div>

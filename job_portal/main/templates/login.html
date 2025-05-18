@@ -1,21 +1,70 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title text-center">Login</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
-                <p class="text-center mt-3">
-                    Don't have an account? <a href="{% url 'register' %}">Register here</a>
-                </p>
+<div class="d-flex flex-column justify-content-between min-vh-100">
+    <div class="row justify-content-center my-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title text-center text-primary mb-4">Вход</h2>
+                    <form method="post" novalidate class="needs-validation">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">Имя пользователя</label>
+                            <input type="text" class="form-control" id="{{ form.username.id_for_label }}" name="{{ form.username.name }}" required>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">Пароль</label>
+                            <input type="password" class="form-control" id="{{ form.password.id_for_label }}" name="{{ form.password.name }}" required>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">{{ form.password.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                            Войти
+                        </button>
+                    </form>
+                    
+                    <p class="text-center mt-4 mb-0 small">
+                        Нет учетной записи? 
+                        <a href="{% url 'register' %}" class="text-decoration-none fw-bold">Зарегистрироваться здесь</a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
+
 </div>
+
+<style>
+input[type="text"],
+input[type="password"] {
+    border-radius: 0.375rem;
+    padding: 0.875rem 1.375rem;
+}
+
+input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.card .card-body {
+    padding: 2rem;
+}
+
+.invalid-feedback.d-block {
+    display: block !important;
+    margin-top: 0.5rem;
+}
+</style>
 {% endblock %}

@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.db.models import Q
 from .models import *
 from .forms import *
@@ -15,12 +17,25 @@ def register(request):
         if form.is_valid():
             user = form.save()
             is_employer = form.cleaned_data.get('is_employer')
-            UserProfile.objects.create(user=user, is_employer=is_employer)
-            messages.success(request, 'Registration successful!')
+            
+            # Используем get_or_create для безопасного создания профиля
+            profile, created = UserProfile.objects.get_or_create(
+                user=user,
+                defaults={'is_employer': is_employer}
+            )
+
+            if not created:
+                profile.is_employer = is_employer
+                profile.save()
+
+            messages.success(request, 'Регистрация успешна! Теперь вы можете войти.')
+
             return redirect('login')
     else:
         form = UserRegistrationForm()
-    return render(request, 'register.html', {'form': form})
+        
+    context = {'form': form}
+    return render(request, 'register.html', context)
 
 def jobs_list(request):
     form = JobSearchForm(request.GET)
@@ -65,7 +80,7 @@ def profile(request):
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Profile updated successfully!')
+            messages.success(request, 'Профиль обновлен успешно!')
             return redirect('profile')
     else:
         form = UserProfileForm(instance=user_profile)
@@ -90,7 +105,7 @@ def profile(request):
 @login_required
 def create_job(request):
     if not request.user.userprofile.is_employer:
-        messages.error(request, 'Only employers can create jobs!')
+        messages.error(request, 'Только работодатели могут публиковать вакансии!')
         return redirect('home')
 
     if request.method == 'POST':
@@ -99,7 +114,7 @@ def create_job(request):
             job = form.save(commit=False)
             job.employer = request.user
             job.save()
-            messages.success(request, 'Job posted successfully!')
+            messages.success(request, 'Вакансия опубликована успешно!')
             return redirect('profile')
     else:
         form = JobForm()
@@ -111,11 +126,11 @@ def apply_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     
     if request.user.userprofile.is_employer:
-        messages.error(request, 'Employers cannot apply for jobs!')
+        messages.error(request, 'Работодатели не могут подавать заявки на вакансии!')
         return redirect('jobs_list')
         
     if Application.objects.filter(job=job, applicant=request.user).exists():
-        messages.warning(request, 'You have already applied for this job!')
+        messages.warning(request, 'Вы уже подали заявку на эту вакансию!')
         return redirect('jobs_list')
 
     try:
@@ -131,7 +146,7 @@ def apply_job(request, job_id):
             application.applicant = request.user
             application.resume = resume
             application.save()
-            messages.success(request, 'Application submitted successfully!')
+            messages.success(request, 'Заявка отправлена успешно!')
             return redirect('profile')
     else:
         form = ApplicationForm()
@@ -144,23 +159,21 @@ def apply_job(request, job_id):
 
 @login_required
 def upload_resume(request):
-    if request.user.userprofile.is_employer:
-        messages.error(request, 'Employers cannot upload resumes!')
-        return redirect('profile')
+    resume_instance = Resume.objects.filter(user=request.user).first()
 
     if request.method == 'POST':
-        form = ResumeForm(request.POST, request.FILES)
+        form = ResumeForm(request.POST, request.FILES, instance=resume_instance)
         if form.is_valid():
-            Resume.objects.update_or_create(
-                user=request.user,
-                defaults={'file': request.FILES['file']}
-            )
-            messages.success(request, 'Resume uploaded successfully!')
+            resume = form.save(commit=False)
+            resume.user = request.user
+            resume.save()
+            messages.success(request, 'Ваше резюме успешно обновлено.' if resume_instance else 'Ваше резюме успешно загружено.')
             return redirect('profile')
     else:
-        form = ResumeForm()
+        form = ResumeForm(instance=resume_instance)
 
     return render(request, 'upload_resume.html', {'form': form})
+
 
 @login_required
 def notifications(request):
@@ -168,3 +181,22 @@ def notifications(request):
     # Отмечаем все уведомления как прочитанные
     notifications.filter(is_read=False).update(is_read=True)
     return render(request, 'notifications.html', {'notifications': notifications})
+
+@login_required
+def view_applications(request, job_id):
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    applications = job.application_set.all()
+    return render(request, 'view_applications.html', {'job': job, 'applications': applications})
+
+
+
+def delete_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id, employer=request.user.userprofile)
+    
+    if job.employer.user != request.user:
+        messages.error(request, 'У вас нет прав для удаления этой вакансии.')
+        return redirect('profile')
+    
+    job.delete()
+    messages.success(request, 'Вакансия успешно удалена!')
+    return redirect('profile')

@@ -2,6 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 
+class Resume(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    file = models.FileField(
+        upload_to='resumes/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])]
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Резюме пользователя {self.user.username}"
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_employer = models.BooleanField(default=False)
@@ -11,36 +22,30 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     website = models.URLField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True)
-    
+    resume = models.OneToOneField(Resume, on_delete=models.SET_NULL, null=True, blank=True)
+
     def __str__(self):
-        return f"{self.user.username}'s profile"
-
-class Resume(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    file = models.FileField(
-        upload_to='resumes/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])]
-    )
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-# main/models.py
+        return f"Профиль пользователя {self.user.username}"
+    
+    def can_be_deleted_by(self, user):
+        return self.user == user
 
 class Job(models.Model):
     CATEGORIES = [
-        ('IT', 'Information Technology'),
-        ('SALES', 'Sales'),
-        ('MARKETING', 'Marketing'),
-        ('FINANCE', 'Finance'),
-        ('HR', 'Human Resources'),
-        ('OTHER', 'Other'),
+        ('IT', 'Информационные технологии'),
+        ('SALES', 'Продажи'),
+        ('MARKETING', 'Маркетинг'),
+        ('FINANCE', 'Финансы'),
+        ('HR', 'Кадры'),
+        ('OTHER', 'Другое'),
     ]
     
     EXPERIENCE_LEVELS = [
-        ('ENTRY', 'Entry Level'),
-        ('JUNIOR', 'Junior'),
-        ('MID', 'Mid Level'),
-        ('SENIOR', 'Senior'),
-        ('LEAD', 'Lead'),
+        ('ENTRY', 'Стартовая'),
+        ('JUNIOR', 'Юниор'),
+        ('MID', 'Средний'),
+        ('SENIOR', 'Сеньор'),
+        ('LEAD', 'Лид'),
     ]
 
     title = models.CharField(max_length=200)
@@ -50,25 +55,31 @@ class Job(models.Model):
     experience_level = models.CharField(
         max_length=20, 
         choices=EXPERIENCE_LEVELS,
-        default='ENTRY'  # Добавляем значение по умолчанию
+        default='ENTRY' 
     )
     salary_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    location = models.CharField(max_length=100, default='Remote')  # Добавляем значение по умолчанию
+    location = models.CharField(max_length=100, default='Удаленно')
     is_remote = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     deadline = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
+    def can_be_deleted_by(self, user):
+        return self.employer.user == user
+
     class Meta:
         ordering = ['-created_at']
 
+    def __str__(self):
+        return self.title
+
 class Application(models.Model):
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('REVIEWED', 'Reviewed'),
-        ('ACCEPTED', 'Accepted'),
-        ('REJECTED', 'Rejected'),
+        ('PENDING', 'В ожидании'),
+        ('REVIEWED', 'Рассмотрена'),
+        ('ACCEPTED', 'Принята'),
+        ('REJECTED', 'Отклонена'),
     ]
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
@@ -79,8 +90,14 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"Заявка на {self.job.title} от {self.applicant.username}"
+
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Уведомление для {self.user.username}: {self.message[:50]}"

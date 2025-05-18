@@ -7,20 +7,20 @@
         <div class="col-md-8">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h3 class="card-title mb-4">Apply for Position</h3>
+                    <h3 class="card-title mb-4">Подать заявку на вакансию</h3>
                     
-                    <!-- Job Details -->
+                    <!-- Информация о вакансии -->
                     <div class="job-details mb-4 p-4 bg-light rounded">
                         <h4>{{ job.title }}</h4>
                         <p class="text-muted mb-2">
                             <i class="fas fa-building me-2"></i>
-                            {{ job.employer.userprofile.company_name|default:"Company" }}
+                            {{ job.employer.userprofile.company_name|default:"Компания" }}
                         </p>
                         <p class="mb-2">
                             <i class="fas fa-map-marker-alt me-2"></i>
                             {{ job.location }}
                             {% if job.is_remote %}
-                                <span class="badge bg-success ms-2">Remote</span>
+                                <span class="badge bg-success ms-2">Удаленно</span>
                             {% endif %}
                         </p>
                         <p class="mb-0">
@@ -29,15 +29,15 @@
                         </p>
                     </div>
 
-                    <!-- Application Form -->
+                    <!-- Форма подачи заявки -->
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         {% if not resume %}
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            You haven't uploaded your resume yet. 
-                            <a href="{% url 'upload_resume' %}" class="alert-link">Upload now</a>
+                            Вы еще не загрузили свое резюме. 
+                            <a href="{% url 'upload_resume' %}" class="alert-link">Загрузить сейчас</a>
                         </div>
                         {% endif %}
 
@@ -50,7 +50,7 @@
                                 <textarea name="{{ field.name }}" 
                                           class="form-control" 
                                           rows="5" 
-                                          placeholder="Tell us why you're interested in this position..."></textarea>
+                                          placeholder="Расскажите, почему вам интересна эта позиция..."></textarea>
                             {% else %}
                                 {{ field }}
                             {% endif %}
@@ -67,10 +67,10 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>Submit Application
+                                <i class="fas fa-paper-plane me-2"></i>Отправить заявку
                             </button>
                             <a href="{% url 'jobs_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Jobs
+                                <i class="fas fa-arrow-left me-2"></i>Назад к списку вакансий
                             </a>
                         </div>
                     </form>
